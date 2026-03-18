@@ -1,0 +1,294 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "TFjOv",
+      "x": 0,
+      "y": 0,
+      "name": "Marka App Icon",
+      "clip": true,
+      "width": 1024,
+      "height": 1024,
+      "fill": {
+        "type": "gradient",
+        "gradientType": "linear",
+        "enabled": true,
+        "rotation": 135,
+        "size": {
+          "height": 1
+        },
+        "colors": [
+          {
+            "color": "#5B4FF0",
+            "position": 0
+          },
+          {
+            "color": "#7C3AED",
+            "position": 1
+          }
+        ]
+      },
+      "cornerRadius": 230,
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "cornerRadius": 6,
+          "id": "Ci9fH",
+          "x": 652,
+          "y": 109,
+          "name": "Hash V1",
+          "opacity": 0.22,
+          "fill": "#FFFFFF",
+          "width": 22,
+          "height": 170
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 6,
+          "id": "YakwA",
+          "x": 704,
+          "y": 109,
+          "name": "Hash V2",
+          "opacity": 0.22,
+          "fill": "#FFFFFF",
+          "width": 22,
+          "height": 170
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 6,
+          "id": "cZAZp",
+          "x": 596,
+          "y": 167,
+          "name": "Hash H1",
+          "opacity": 0.22,
+          "fill": "#FFFFFF",
+          "width": 190,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 6,
+          "id": "Y8Izm",
+          "x": 596,
+          "y": 207,
+          "name": "Hash H2",
+          "opacity": 0.22,
+          "fill": "#FFFFFF",
+          "width": 190,
+          "height": 18
+        },
+        {
+          "type": "path",
+          "id": "8X5Jd",
+          "x": 162,
+          "y": 200,
+          "name": "M Letter",
+          "geometry": "M0 590l0-590 160 0 190 310 190-310 160 0 0 590-144 0 0-360-166 300-80 0-166-300 0 360z",
+          "fill": "#FFFFFF",
+          "width": 700,
+          "height": 590
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": [
+            230,
+            230,
+            0,
+            0
+          ],
+          "id": "GEH2C",
+          "x": 0,
+          "y": 0,
+          "name": "Top Highlight",
+          "opacity": 0.07,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 180,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#FFFFFF",
+                "position": 0
+              },
+              {
+                "color": "#FFFFFF00",
+                "position": 1
+              }
+            ]
+          },
+          "width": 1024,
+          "height": 420
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "7QmIJ",
+      "x": 1124,
+      "y": 372,
+      "name": "Copyright Modal",
+      "width": 320,
+      "fill": "#FFFFFF",
+      "cornerRadius": 20,
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#00000026",
+        "offset": {
+          "x": 0,
+          "y": 8
+        },
+        "blur": 32
+      },
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "GxxNt",
+          "name": "Modal Header",
+          "width": "fill_container",
+          "height": 88,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 135,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "#5B4FF0",
+                "position": 0
+              },
+              {
+                "color": "#7C3AED",
+                "position": 1
+              }
+            ]
+          },
+          "cornerRadius": [
+            20,
+            20,
+            0,
+            0
+          ],
+          "layout": "vertical",
+          "gap": 4,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "TThik",
+              "name": "Header Icon Letter",
+              "fill": "#FFFFFF",
+              "content": "M",
+              "fontFamily": "Inter",
+              "fontSize": 28,
+              "fontWeight": "700",
+              "letterSpacing": -1
+            },
+            {
+              "type": "text",
+              "id": "qrvNf",
+              "name": "Header App Name",
+              "fill": "#FFFFFFCC",
+              "content": "Marka",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "500",
+              "letterSpacing": 2
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FLNUC",
+          "name": "Modal Body",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "padding": [
+            24,
+            24,
+            20,
+            24
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "rPsDB",
+              "name": "Developed By Label",
+              "fill": "#9CA3AF",
+              "content": "Developed by",
+              "fontFamily": "Inter",
+              "fontSize": 11
+            },
+            {
+              "type": "text",
+              "id": "yiVxa",
+              "name": "Developer Name",
+              "fill": "#1A1A2E",
+              "content": "WebCMS Sàrl",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "qckow",
+              "name": "Developer Link",
+              "fill": "#5B4FF0",
+              "content": "webcms.lu",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "id": "UNjLv",
+          "name": "Divider",
+          "fill": "#F3F4F6",
+          "width": "fill_container",
+          "height": 1
+        },
+        {
+          "type": "frame",
+          "id": "kj0oW",
+          "name": "Modal Footer",
+          "width": "fill_container",
+          "padding": [
+            14,
+            24,
+            20,
+            24
+          ],
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "lbUQx",
+              "name": "Copyright Text",
+              "fill": "#9CA3AF",
+              "content": "© 2026 WebCMS Sàrl · All rights reserved",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
