@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.5] — 2026-03-23
+
+### Added
+- Update checker: on startup Marka fetches the latest GitHub release and shows a green badge on the About button plus a download banner inside the modal when a newer version is available.
+
+---
+
 ## [1.1.4] — 2026-03-23
 
 ### Added

@@ -88,6 +88,7 @@ export default function App() {
   const [isDragging, setIsDragging]   = useState(false);
   const [showAbout, setShowAbout]     = useState(false);
   const [appVersion, setAppVersion]   = useState('');
+  const [updateInfo, setUpdateInfo]   = useState<{ version: string; url: string } | null>(null);
   const [savedToast, setSavedToast]   = useState(false);
 
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -301,6 +302,22 @@ export default function App() {
 
   useEffect(() => { getVersion().then(setAppVersion); }, []);
 
+  useEffect(() => {
+    if (!appVersion) return;
+    fetch('https://api.github.com/repos/webcmslu/marka/releases/latest')
+      .then(r => r.json())
+      .then(data => {
+        const latest = String(data.tag_name ?? '').replace(/^v/, '');
+        if (!latest) return;
+        const parse = (v: string) => v.split('.').map(Number);
+        const [la, lb, lc] = parse(latest);
+        const [ca, cb, cc] = parse(appVersion);
+        const newer = la > ca || (la === ca && lb > cb) || (la === ca && lb === cb && lc > cc);
+        if (newer) setUpdateInfo({ version: latest, url: data.html_url });
+      })
+      .catch(() => {}); // silent fail — no network, no noise
+  }, [appVersion]);
+
   // On startup: open file from Finder if any, otherwise restore last recent file
   useEffect(() => {
     invoke<string | null>('get_open_file').then(pending => {
@@ -456,7 +473,9 @@ export default function App() {
             <button className="btn btn-icon" onClick={() => setFontSize((s) => Math.min(24, s + 1))} title="Larger">A+</button>
           </div>
           <button className="btn btn-icon" onClick={printDocument} title="Print (⌘P)">🖨</button>
-          <button className="btn btn-icon" onClick={() => setShowAbout(true)} title="About Marka">ⓘ</button>
+          <button className="btn btn-icon about-btn" onClick={() => setShowAbout(true)} title="About Marka">
+            ⓘ{updateInfo && <span className="update-dot" />}
+          </button>
           <select className="theme-select" value={themeId} onChange={(e) => setThemeId(e.target.value as ThemeId)}>
             {THEMES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
@@ -548,6 +567,18 @@ export default function App() {
               <span className="modal-app-name">Marka</span>
               {appVersion && <span className="modal-version">v{appVersion}</span>}
             </div>
+            {updateInfo && (
+              <div className="modal-update">
+                <span className="modal-update-text">v{updateInfo.version} is available</span>
+                <a
+                  className="modal-update-link"
+                  href={updateInfo.url}
+                  onClick={(e) => { e.preventDefault(); openUrl(updateInfo.url); }}
+                >
+                  Download ↗
+                </a>
+              </div>
+            )}
             <div className="modal-body">
               <p className="modal-dev-label">Developed by</p>
               <p className="modal-dev-name">WebCMS Sàrl</p>

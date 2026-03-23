@@ -738,6 +738,20 @@ mark[data-markjs] {
   .markdown-body { max-width: 100%; }
 }
 
+/* ─── Update badge on About button ──────────────────────────────────────── */
+.about-btn { position: relative; }
+.update-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 1.5px solid var(--bg);
+  pointer-events: none;
+}
+
 /* ─── About / Copyright Modal ───────────────────────────────────────────── */
 .modal-backdrop {
   position: fixed;
@@ -790,6 +804,29 @@ mark[data-markjs] {
   font-weight: 400;
   letter-spacing: 0;
 }
+
+.modal-update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #f0fdf4;
+  border-bottom: 1px solid #bbf7d0;
+}
+.modal-update-text {
+  font-size: 13px;
+  color: #166534;
+  font-weight: 500;
+}
+.modal-update-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.modal-update-link:hover { text-decoration: underline; }
 
 .modal-body {
   display: flex;
