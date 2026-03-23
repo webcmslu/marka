@@ -18,6 +18,7 @@ const LS_FONT           = 'markdown-reader:font-size';
 const LS_RECENT         = 'markdown-reader:recent';
 const LS_SIDEBAR        = 'markdown-reader:sidebar';
 const LS_SIDEBAR_VISIBLE = 'markdown-reader:sidebar-visible';
+const LS_SIDEBAR_WIDTH   = 'markdown-reader:sidebar-width';
 
 function slugify(text: string) {
   return text
@@ -89,9 +90,16 @@ export default function App() {
   const [appVersion, setAppVersion]   = useState('');
   const [savedToast, setSavedToast]   = useState(false);
 
-  const contentRef  = useRef<HTMLElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const v = localStorage.getItem(LS_SIDEBAR_WIDTH);
+    return v ? parseInt(v, 10) : 220;
+  });
+
+  const contentRef    = useRef<HTMLElement>(null);
+  const observerRef   = useRef<IntersectionObserver | null>(null);
+  const textareaRef   = useRef<HTMLTextAreaElement>(null);
+  const syncingRef    = useRef(false);
+  const sidebarDragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const theme = THEMES.find((t) => t.id === themeId) ?? THEMES[0];
 
   // Highlight.js CSS injection
@@ -115,6 +123,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_FONT, String(fontSize)); }, [fontSize]);
   useEffect(() => { localStorage.setItem(LS_SIDEBAR, sidebarMode); }, [sidebarMode]);
   useEffect(() => { localStorage.setItem(LS_SIDEBAR_VISIBLE, String(sidebarVisible)); }, [sidebarVisible]);
+  useEffect(() => { localStorage.setItem(LS_SIDEBAR_WIDTH, String(sidebarWidth)); }, [sidebarWidth]);
 
   // Scroll-spy
   useEffect(() => {
@@ -269,6 +278,24 @@ export default function App() {
     if (path && (path.endsWith('.md') || path.endsWith('.markdown'))) await loadFile(path);
   };
 
+  // Sidebar resize drag
+  const onSidebarResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    sidebarDragRef.current = { startX: e.clientX, startWidth: sidebarWidth };
+    const onMove = (ev: MouseEvent) => {
+      if (!sidebarDragRef.current) return;
+      const w = Math.min(480, Math.max(160, sidebarDragRef.current.startWidth + ev.clientX - sidebarDragRef.current.startX));
+      setSidebarWidth(w);
+    };
+    const onUp = () => {
+      sidebarDragRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [sidebarWidth]);
+
   // Tab key → insert 2 spaces in textarea
   const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Tab') return;
@@ -389,7 +416,8 @@ export default function App() {
         <div className="layout">
           {/* Sidebar */}
           {sidebarVisible && (
-            <aside className="sidebar">
+            <aside className="sidebar" style={{ width: sidebarWidth, minWidth: sidebarWidth }}>
+              <div className="sidebar-resizer" onMouseDown={onSidebarResizeStart} />
               <div className="sidebar-tabs">
                 <button className={`sidebar-tab${sidebarMode === 'files' ? ' active' : ''}`} onClick={() => setSidebarMode('files')}>
                   Files
@@ -428,10 +456,35 @@ export default function App() {
                   spellCheck={false}
                   onChange={(e) => { setRawContent(e.target.value); setIsDirty(true); }}
                   onKeyDown={onTextareaKeyDown}
+                  onScroll={(e) => {
+                    if (syncingRef.current) return;
+                    const src = e.currentTarget;
+                    const ratio = src.scrollTop / (src.scrollHeight - src.clientHeight);
+                    const dst = contentRef.current;
+                    if (dst) {
+                      syncingRef.current = true;
+                      dst.scrollTop = ratio * (dst.scrollHeight - dst.clientHeight);
+                      requestAnimationFrame(() => { syncingRef.current = false; });
+                    }
+                  }}
                 />
               </div>
               <div className="editor-divider" />
-              <main className="editor-preview content-wrapper" ref={contentRef}>
+              <main
+                className="editor-preview content-wrapper"
+                ref={contentRef}
+                onScroll={(e) => {
+                  if (syncingRef.current) return;
+                  const src = e.currentTarget;
+                  const ratio = src.scrollTop / (src.scrollHeight - src.clientHeight);
+                  const dst = textareaRef.current;
+                  if (dst) {
+                    syncingRef.current = true;
+                    dst.scrollTop = ratio * (dst.scrollHeight - dst.clientHeight);
+                    requestAnimationFrame(() => { syncingRef.current = false; });
+                  }
+                }}
+              >
                 {preview}
               </main>
             </div>

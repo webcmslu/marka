@@ -405,13 +405,29 @@ mark[data-markjs] {
 
 /* ─── Sidebar ────────────────────────────────────────────────────────────── */
 .sidebar {
-  width: 220px;
-  min-width: 220px;
+  /* width and min-width are set via inline style for resizability */
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
   overflow: hidden;
+  position: relative;
+}
+
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+.sidebar-resizer:hover,
+.sidebar-resizer:active {
+  background: var(--active-text);
+  opacity: 0.35;
 }
 
 .sidebar-tabs {
@@ -535,6 +551,32 @@ mark[data-markjs] {
   text-transform: uppercase;
   color: var(--text-muted);
   padding: 2px 12px 4px;
+}
+
+.fb-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+.fb-section-toggle:hover { background: var(--btn-hover); }
+
+.fb-toggle-chevron {
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+  display: inline-block;
+  transform: rotate(0deg);
+}
+.fb-toggle-chevron.open {
+  transform: rotate(90deg);
 }
 
 .fb-item {

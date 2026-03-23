@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface FileEntry {
@@ -30,8 +30,18 @@ function shortenPath(path: string) {
   return parentDir(path).replace(/^\/Users\/[^/]+/, '~');
 }
 
+const LS_RECENT_OPEN = 'markdown-reader:recent-open';
+
 export function FileBrowser({ currentFile, currentDir, recentFiles, onFileSelect, onDirChange }: FileBrowserProps) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
+  const [recentOpen, setRecentOpen] = useState(() => localStorage.getItem(LS_RECENT_OPEN) !== 'false');
+
+  const toggleRecent = useCallback(() => {
+    setRecentOpen(v => {
+      localStorage.setItem(LS_RECENT_OPEN, String(!v));
+      return !v;
+    });
+  }, []);
 
   useEffect(() => {
     if (!currentDir) return;
@@ -67,8 +77,11 @@ export function FileBrowser({ currentFile, currentDir, recentFiles, onFileSelect
 
       {recentToShow.length > 0 && (
         <div className="fb-section">
-          <div className="fb-section-title">Recent</div>
-          {recentToShow.map((p) => (
+          <button className="fb-section-title fb-section-toggle" onClick={toggleRecent}>
+            <span>Recent</span>
+            <span className={`fb-toggle-chevron${recentOpen ? ' open' : ''}`}>›</span>
+          </button>
+          {recentOpen && recentToShow.map((p) => (
             <button
               key={p}
               className={`fb-item fb-file fb-item-recent${p === currentFile ? ' active' : ''}`}
