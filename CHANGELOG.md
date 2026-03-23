@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.4] — 2026-03-23
+
+### Added
+- Scroll sync is now bidirectional: the pane the mouse is over drives the other. Moving the cursor into the preview syncs the editor to it, and vice versa.
+
+### Fixed
+- Scroll position no longer jumps to the top after the debounced preview re-render.
+
+---
+
 ## [1.1.3] — 2026-03-23
 
 ### Added

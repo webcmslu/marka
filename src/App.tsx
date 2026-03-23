@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { getVersion } from '@tauri-apps/api/app';
 import { open, save } from '@tauri-apps/plugin-dialog';
@@ -95,11 +95,13 @@ export default function App() {
     return v ? parseInt(v, 10) : 220;
   });
 
-  const contentRef    = useRef<HTMLElement>(null);
-  const observerRef   = useRef<IntersectionObserver | null>(null);
-  const textareaRef   = useRef<HTMLTextAreaElement>(null);
-  const syncingRef    = useRef(false);
-  const sidebarDragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const contentRef         = useRef<HTMLElement>(null);
+  const observerRef        = useRef<IntersectionObserver | null>(null);
+  const textareaRef        = useRef<HTMLTextAreaElement>(null);
+  const scrollRatioRef     = useRef(0);
+  const activePaneRef      = useRef<'editor' | 'preview'>('editor');
+  const restoringRef       = useRef(false);
+  const sidebarDragRef     = useRef<{ startX: number; startWidth: number } | null>(null);
   const theme = THEMES.find((t) => t.id === themeId) ?? THEMES[0];
 
   // Highlight.js CSS injection
@@ -151,6 +153,66 @@ export default function App() {
     }, 250);
     return () => clearTimeout(timer);
   }, [rawContent, editMode]);
+
+  // Bidirectional scroll sync driven by which pane the mouse is over.
+  // mouseenter on each pane sets activePaneRef; only the active pane
+  // acts as the source so programmatic scrollTop writes on the destination
+  // never feed back into a reverse sync.
+  useEffect(() => {
+    if (!editMode) return;
+    const textarea = textareaRef.current;
+    const scroller = contentRef.current;
+    if (!textarea || !scroller) return;
+
+    const setEditor  = () => { activePaneRef.current = 'editor'; };
+    const setPreview = () => { activePaneRef.current = 'preview'; };
+
+    const syncFromEditor = () => {
+      if (restoringRef.current || activePaneRef.current !== 'editor') return;
+      const maxSrc = textarea.scrollHeight - textarea.clientHeight;
+      if (maxSrc <= 0) return;
+      const ratio = textarea.scrollTop / maxSrc;
+      scrollRatioRef.current = ratio;
+      const maxDst = scroller.scrollHeight - scroller.clientHeight;
+      if (maxDst <= 0) return;
+      scroller.scrollTop = ratio * maxDst;
+    };
+
+    const syncFromPreview = () => {
+      if (restoringRef.current || activePaneRef.current !== 'preview') return;
+      const maxSrc = scroller.scrollHeight - scroller.clientHeight;
+      if (maxSrc <= 0) return;
+      const ratio = scroller.scrollTop / maxSrc;
+      scrollRatioRef.current = ratio;
+      const maxDst = textarea.scrollHeight - textarea.clientHeight;
+      if (maxDst <= 0) return;
+      textarea.scrollTop = ratio * maxDst;
+    };
+
+    textarea.addEventListener('mouseenter', setEditor);
+    scroller.addEventListener('mouseenter', setPreview);
+    textarea.addEventListener('scroll', syncFromEditor, { passive: true });
+    scroller.addEventListener('scroll', syncFromPreview, { passive: true });
+    return () => {
+      textarea.removeEventListener('mouseenter', setEditor);
+      scroller.removeEventListener('mouseenter', setPreview);
+      textarea.removeEventListener('scroll', syncFromEditor);
+      scroller.removeEventListener('scroll', syncFromPreview);
+    };
+  }, [editMode]);
+
+  // After each HTML update restore the preview position. restoringRef blocks
+  // syncFromPreview so the programmatic scrollTop write is not treated as a
+  // user scroll and does not feed back into the textarea.
+  useLayoutEffect(() => {
+    if (!editMode || !contentRef.current) return;
+    const scroller = contentRef.current;
+    const maxDst = scroller.scrollHeight - scroller.clientHeight;
+    if (maxDst <= 0) return;
+    restoringRef.current = true;
+    scroller.scrollTop = scrollRatioRef.current * maxDst;
+    restoringRef.current = false;
+  }, [html, editMode]);
 
   // Window title reflects dirty state
   useEffect(() => {
@@ -335,6 +397,7 @@ export default function App() {
     }
   };
 
+  // Used in read-only mode (no scroll sync needed).
   const preview = (
     <article
       className="markdown-body"
@@ -456,34 +519,12 @@ export default function App() {
                   spellCheck={false}
                   onChange={(e) => { setRawContent(e.target.value); setIsDirty(true); }}
                   onKeyDown={onTextareaKeyDown}
-                  onScroll={(e) => {
-                    if (syncingRef.current) return;
-                    const src = e.currentTarget;
-                    const ratio = src.scrollTop / (src.scrollHeight - src.clientHeight);
-                    const dst = contentRef.current;
-                    if (dst) {
-                      syncingRef.current = true;
-                      dst.scrollTop = ratio * (dst.scrollHeight - dst.clientHeight);
-                      requestAnimationFrame(() => { syncingRef.current = false; });
-                    }
-                  }}
                 />
               </div>
               <div className="editor-divider" />
               <main
                 className="editor-preview content-wrapper"
                 ref={contentRef}
-                onScroll={(e) => {
-                  if (syncingRef.current) return;
-                  const src = e.currentTarget;
-                  const ratio = src.scrollTop / (src.scrollHeight - src.clientHeight);
-                  const dst = textareaRef.current;
-                  if (dst) {
-                    syncingRef.current = true;
-                    dst.scrollTop = ratio * (dst.scrollHeight - dst.clientHeight);
-                    requestAnimationFrame(() => { syncingRef.current = false; });
-                  }
-                }}
               >
                 {preview}
               </main>
