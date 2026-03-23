@@ -67,7 +67,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: Marka ${{ github.ref_name }}
           releaseBody: |
-            See the [CHANGELOG](https://github.com/webcmslu/marka/blob/main/CHANGELOG.md) for details.
-          releaseDraft: true
+            See the [CHANGELOG](https://github.com/webcmslu/marka/blob/main/app/CHANGELOG.md) for details.
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
