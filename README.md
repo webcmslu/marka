@@ -140,6 +140,23 @@ windows-latest →                          →  .msi / .exe
 
 The `GITHUB_TOKEN` is provided automatically by GitHub Actions — no secrets to configure.
 
+## Landing page version
+
+When the build are done on github workers side, also update the landing page version
+
+```
+package.json
+src/main.js
+```
+
+Then commit and push
+
+```bash
+git add package.json src/main.js
+git commit -m "chore: bump version to 1.2.0"
+git push origin main
+```
+
 ## Versioning
 
 This project follows [Semantic Versioning](https://semver.org). The version is kept in sync across `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml`.
