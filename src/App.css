@@ -307,6 +307,9 @@ html, body, #root { height: 100%; }
 .btn-icon {
   padding: 4px 7px;
   font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar-toggle { opacity: 0.6; }
@@ -460,9 +463,9 @@ mark[data-markjs] {
 /* ─── TOC ────────────────────────────────────────────────────────────────── */
 .toc {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 12px 0;
-  display: flex;
   flex-direction: column;
 }
 

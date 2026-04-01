@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import { Menu, Search as SearchIcon, Printer, Info, AArrowDown, AArrowUp } from 'lucide-react';
 import { listen } from '@tauri-apps/api/event';
 import { getVersion } from '@tauri-apps/api/app';
 import { open, save } from '@tauri-apps/plugin-dialog';
@@ -439,7 +440,7 @@ export default function App() {
           onClick={() => setSidebarVisible(v => !v)}
           title="Toggle sidebar"
         >
-          ☰
+          <Menu size={16} />
         </button>
         <button className="btn" onClick={newFile} title="New file (⌘N)">New</button>
         <button className="btn" onClick={openFile}>Open</button>
@@ -467,14 +468,14 @@ export default function App() {
               </button>
             )
           )}
-          <button className="btn btn-icon" onClick={() => setSearchVisible((v) => !v)} title="Search (⌘F)">🔍</button>
+          <button className="btn btn-icon" onClick={() => setSearchVisible((v) => !v)} title="Search (⌘F)"><SearchIcon size={15} /></button>
           <div className="font-controls">
-            <button className="btn btn-icon" onClick={() => setFontSize((s) => Math.max(12, s - 1))} title="Smaller">A−</button>
-            <button className="btn btn-icon" onClick={() => setFontSize((s) => Math.min(24, s + 1))} title="Larger">A+</button>
+            <button className="btn btn-icon" onClick={() => setFontSize((s) => Math.max(12, s - 1))} title="Smaller"><AArrowDown size={15} /></button>
+            <button className="btn btn-icon" onClick={() => setFontSize((s) => Math.min(24, s + 1))} title="Larger"><AArrowUp size={15} /></button>
           </div>
-          <button className="btn btn-icon" onClick={printDocument} title="Print (⌘P)">🖨</button>
+          <button className="btn btn-icon" onClick={printDocument} title="Print (⌘P)"><Printer size={15} /></button>
           <button className="btn btn-icon about-btn" onClick={() => setShowAbout(true)} title="About Marka">
-            ⓘ{updateInfo && <span className="update-dot" />}
+            <Info size={15} />{updateInfo && <span className="update-dot" />}
           </button>
           <select className="theme-select" value={themeId} onChange={(e) => setThemeId(e.target.value as ThemeId)}>
             {THEMES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
