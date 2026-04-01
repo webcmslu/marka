@@ -1,6 +1,6 @@
 [package]
 name = "marka"
-version = "1.1.5"
+version = "1.1.6"
 description = "Marka — Markdown viewer and editor"
 authors = ["WebCMS Sàrl <info@webcms.lu>"]
 edition = "2021"

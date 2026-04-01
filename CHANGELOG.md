@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.6] — 2026-04-01
+
+### Added
+- Replaced emoji toolbar icons (☰ 🔍 🖨 ⓘ) with crisp SVG icons from Lucide React.
+
+### Fixed
+- Contents sidebar now scrolls correctly when a document has many headings.
+- Toolbar icon buttons are now vertically centred.
+- Theme dropdown now matches the height of the adjacent toolbar buttons.
+
+---
+
 ## [1.1.5] — 2026-03-23
 
 ### Added
