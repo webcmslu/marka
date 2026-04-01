@@ -333,6 +333,7 @@ html, body, #root { height: 100%; }
   border-radius: 6px;
   cursor: pointer;
   outline: none;
+  align-self: stretch;
 }
 
 /* ─── Search bar ─────────────────────────────────────────────────────────── */
