@@ -21,6 +21,7 @@
     "@tauri-apps/plugin-opener": "^2",
     "github-markdown-css": "^5.9.0",
     "highlight.js": "^11.11.1",
+    "lucide-react": "^1.7.0",
     "mark.js": "^8.11.1",
     "marked": "^17.0.4",
     "react": "^19.1.0",
