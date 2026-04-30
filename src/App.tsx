@@ -13,6 +13,7 @@ import { THEMES, type ThemeId } from './themes';
 import { Toc, type TocItem } from './Toc';
 import { FileBrowser } from './FileBrowser';
 import { Search } from './Search';
+import { EditorToolbar, type Transform } from './EditorToolbar';
 
 const LS_THEME          = 'markdown-reader:theme';
 const LS_FONT           = 'markdown-reader:font-size';
@@ -31,12 +32,16 @@ function slugify(text: string) {
     .trim();
 }
 
+const WRAP_LANGS = new Set(['text', 'email', 'plain', 'txt', 'letter', 'plaintext']);
+
 function buildRenderer(tocItems: TocItem[]) {
   const renderer = new marked.Renderer();
   renderer.code = ({ text, lang }) => {
-    const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
-    const highlighted = hljs.highlight(text, { language }).value;
-    return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
+    const isWrap = !!lang && WRAP_LANGS.has(lang);
+    const hljsLang = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+    const highlighted = hljs.highlight(text, { language: hljsLang }).value;
+    const dataLang = isWrap ? ` data-lang="${lang}"` : '';
+    return `<pre${dataLang}><code class="hljs language-${isWrap ? lang : hljsLang}">${highlighted}</code></pre>`;
   };
   renderer.heading = ({ text, depth }) => {
     const id = slugify(text);
@@ -376,6 +381,19 @@ export default function App() {
     window.addEventListener('mouseup', onUp);
   }, [sidebarWidth]);
 
+  const applyFormat = useCallback((transform: Transform) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const { content, selStart, selEnd } = transform(ta, rawContent);
+    setRawContent(content);
+    setIsDirty(true);
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.selectionStart = selStart;
+      ta.selectionEnd   = selEnd;
+    });
+  }, [rawContent]);
+
   // Tab key → insert 2 spaces in textarea
   const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Tab') return;
@@ -532,6 +550,7 @@ export default function App() {
           {editMode ? (
             <div className="editor-split">
               <div className="editor-pane">
+                <EditorToolbar onAction={applyFormat} />
                 <textarea
                   ref={textareaRef}
                   className="editor-textarea"

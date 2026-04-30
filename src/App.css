@@ -707,6 +707,42 @@ mark[data-markjs] {
   min-width: 0;
 }
 
+/* ─── Editor formatting toolbar ─────────────────────────────────────────── */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--toolbar-border);
+  background: var(--bg);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.editor-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.editor-toolbar-group + .editor-toolbar-group {
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 1px solid var(--toolbar-border);
+}
+
+.editor-toolbar-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.editor-toolbar-btn:hover {
+  color: var(--text);
+}
+
 .editor-textarea {
   flex: 1;
   width: 100%;
@@ -735,6 +771,17 @@ mark[data-markjs] {
 }
 
 /* ─── Print ──────────────────────────────────────────────────────────────── */
+/* text-like fences (```text, ```email, etc.) wrap instead of scroll */
+.markdown-body pre[data-lang] {
+  overflow: visible;
+}
+
+.markdown-body pre[data-lang] > code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  word-wrap: break-word;
+}
+
 @media print {
   .toolbar, .search-bar, .sidebar, .editor-pane, .editor-divider { display: none !important; }
   .layout, .editor-split { display: block; }

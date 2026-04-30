@@ -93,8 +93,16 @@ fn print_document(html: String) -> Result<(), String> {
       border-radius: 6px;
       padding: 1rem;
       overflow: auto;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
     }}
     pre code {{ background: none; padding: 0; font-size: 100%; }}
+    pre[data-lang] {{ overflow: visible; }}
+    pre[data-lang] code {{
+      white-space: pre-wrap;
+      word-break: break-word;
+      word-wrap: break-word;
+    }}
     blockquote {{
       border-left: 4px solid #dfe2e5;
       color: #6a737d;
@@ -105,7 +113,10 @@ fn print_document(html: String) -> Result<(), String> {
     th, td {{ border: 1px solid #dfe2e5; padding: 0.5rem 1rem; }}
     th {{ background: #f6f8fa; font-weight: 600; }}
     img {{ max-width: 100%; }}
-    @media print {{ body {{ padding: 0; }} }}
+    @page {{ margin: 1.5cm 2cm; }}
+    @media print {{
+      body {{ padding: 0; max-width: none; margin: 0; }}
+    }}
   </style>
   <script>window.onload = function() {{ window.print(); }}</script>
 </head>

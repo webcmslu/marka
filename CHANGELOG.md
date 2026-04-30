@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.7] — 2026-04-30
+
+### Added
+- Text-mode fenced code blocks: using ` ```text `, ` ```email `, ` ```plain `, ` ```txt `, or ` ```letter ` wraps the content across lines instead of scrolling horizontally. Standard code fences (` ```js `, ` ```php `, etc.) keep their default non-wrapping behaviour. This applies both on screen and when printing.
+- Markdown formatting toolbar in edit mode: 14 buttons grouped into Headings (H1–H3), Inline (Bold, Italic, Strikethrough, Inline code), Block (Blockquote, Bullet list, Numbered list), and Insert (Link, Image, Code block, Horizontal rule). Wraps selected text or inserts a placeholder when nothing is selected.
+
+### Fixed
+- Print: left and right margins were excessive; page margins are now controlled via `@page` and the body max-width is removed when printing.
+- Print: content inside text-mode code blocks (` ```text `, ` ```email `, etc.) was being cut off; the print template now applies `pre-wrap` and `overflow: visible` for those blocks.
+- Print: code block backgrounds were invisible by default; added `print-color-adjust: exact` so the light grey background renders correctly.
+
+---
+
 ## [1.1.6] — 2026-04-01
 
 ### Added
