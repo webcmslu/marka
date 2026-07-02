@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.8] — 2026-07-02
+
+### Fixed
+- Print: the button did nothing (and briefly flashed a console window) on Windows when `.html` was not associated with a script-capable browser. Printing no longer shells out to the OS default handler; the print document now renders in an app-owned WebView window that reliably runs `window.print()` and auto-closes afterwards. This also removes the transient `cmd` console flash.
+
+---
+
 ## [1.1.7] — 2026-04-30
 
 ### Added

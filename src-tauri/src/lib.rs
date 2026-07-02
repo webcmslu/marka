@@ -62,7 +62,7 @@ fn get_open_file(state: tauri::State<PendingFile>) -> Option<String> {
 }
 
 #[tauri::command]
-fn print_document(html: String) -> Result<(), String> {
+fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
     let document = format!(r#"<!DOCTYPE html>
 <html>
 <head>
@@ -118,7 +118,10 @@ fn print_document(html: String) -> Result<(), String> {
       body {{ padding: 0; max-width: none; margin: 0; }}
     }}
   </style>
-  <script>window.onload = function() {{ window.print(); }}</script>
+  <script>
+    window.onload = function() {{ window.print(); }};
+    window.onafterprint = function() {{ window.close(); }};
+  </script>
 </head>
 <body>
 {html}
@@ -127,12 +130,24 @@ fn print_document(html: String) -> Result<(), String> {
 
     let path = std::env::temp_dir().join("marka_print.html");
     std::fs::write(&path, &document).map_err(|e| e.to_string())?;
-    #[cfg(target_os = "macos")]
-    std::process::Command::new("open").arg(&path).spawn().map_err(|e| e.to_string())?;
-    #[cfg(target_os = "linux")]
-    std::process::Command::new("xdg-open").arg(&path).spawn().map_err(|e| e.to_string())?;
-    #[cfg(target_os = "windows")]
-    std::process::Command::new("cmd").args(["/C", "start", "", &path.to_string_lossy()]).spawn().map_err(|e| e.to_string())?;
+
+    // Render the print document in an app-owned WebView window instead of shelling
+    // out to the OS default `.html` handler. This keeps everything inside the
+    // bundled webview (WebView2/WKWebView/WebKitGTK), which reliably runs the inline
+    // `window.print()`, and removes the dependency on the user's file association.
+    let url = tauri::Url::from_file_path(&path).map_err(|_| "invalid print file path".to_string())?;
+
+    // A window with the "print" label may still exist if a previous print run was
+    // cancelled before `onafterprint` closed it; force-destroy it so we can reuse the label.
+    if let Some(existing) = app.get_webview_window("print") {
+        let _ = existing.destroy();
+    }
+
+    tauri::WebviewWindowBuilder::new(&app, "print", tauri::WebviewUrl::External(url))
+        .title("Print")
+        .inner_size(820.0, 640.0)
+        .build()
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
