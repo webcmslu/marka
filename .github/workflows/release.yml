@@ -6,7 +6,35 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  # Create a single draft release up front so the parallel build jobs never race
+  # to create it (the old single-job matrix hit `already_exists` intermittently).
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.create.outputs.result }}
+    steps:
+      - name: Create draft release
+        id: create
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `Marka ${tag}`,
+              body: 'See the [CHANGELOG](https://github.com/webcmslu/marka/blob/main/app/CHANGELOG.md) for details.',
+              draft: true,
+              prerelease: false,
+            });
+            return data.id;
+
+  build:
+    needs: create-release
     permissions:
       contents: write
 
@@ -53,7 +81,7 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
-      - name: Build and release
+      - name: Build and upload artifacts
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,10 +92,23 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Marka ${{ github.ref_name }}
-          releaseBody: |
-            See the [CHANGELOG](https://github.com/webcmslu/marka/blob/main/app/CHANGELOG.md) for details.
-          releaseDraft: false
-          prerelease: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
+
+  # Publish (un-draft) the release only after every build job has uploaded.
+  publish-release:
+    needs: [create-release, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.create-release.outputs.release_id }},
+              draft: false,
+            });
