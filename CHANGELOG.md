@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.9] — 2026-07-02
+
+### Fixed
+- Print (macOS): 1.1.8 opened a window with the document but showed no print dialog, because macOS's WebView (WKWebView) does not implement JavaScript `window.print()`. On macOS, printing now opens the document in the default handler (a browser) again, which prints correctly. Windows and Linux keep the in-app WebView-window print introduced in 1.1.8.
+
+---
+
 ## [1.1.8] — 2026-07-02
 
 ### Fixed

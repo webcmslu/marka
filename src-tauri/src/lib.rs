@@ -131,23 +131,41 @@ fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
     let path = std::env::temp_dir().join("marka_print.html");
     std::fs::write(&path, &document).map_err(|e| e.to_string())?;
 
-    // Render the print document in an app-owned WebView window instead of shelling
-    // out to the OS default `.html` handler. This keeps everything inside the
-    // bundled webview (WebView2/WKWebView/WebKitGTK), which reliably runs the inline
-    // `window.print()`, and removes the dependency on the user's file association.
-    let url = tauri::Url::from_file_path(&path).map_err(|_| "invalid print file path".to_string())?;
+    // On Windows and Linux, render the print document in an app-owned WebView window
+    // (WebView2 / WebKitGTK). This runs the inline `window.print()` reliably and removes
+    // the dependency on the user's `.html` file association — the association gap was the
+    // original Windows "can't print" bug.
+    //
+    // macOS is handled separately below: its WebView (WKWebView) does NOT implement
+    // JavaScript `window.print()`, so a WebView window would just show the content with no
+    // print dialog. Instead we open the temp file in the default handler, which on macOS is
+    // reliably a browser that does support `window.print()`.
+    #[cfg(not(target_os = "macos"))]
+    {
+        let url = tauri::Url::from_file_path(&path).map_err(|_| "invalid print file path".to_string())?;
 
-    // A window with the "print" label may still exist if a previous print run was
-    // cancelled before `onafterprint` closed it; force-destroy it so we can reuse the label.
-    if let Some(existing) = app.get_webview_window("print") {
-        let _ = existing.destroy();
+        // A window with the "print" label may still exist if a previous print run was
+        // cancelled before `onafterprint` closed it; force-destroy it so we can reuse the label.
+        if let Some(existing) = app.get_webview_window("print") {
+            let _ = existing.destroy();
+        }
+
+        tauri::WebviewWindowBuilder::new(&app, "print", tauri::WebviewUrl::External(url))
+            .title("Print")
+            .inner_size(820.0, 640.0)
+            .build()
+            .map_err(|e| e.to_string())?;
     }
 
-    tauri::WebviewWindowBuilder::new(&app, "print", tauri::WebviewUrl::External(url))
-        .title("Print")
-        .inner_size(820.0, 640.0)
-        .build()
-        .map_err(|e| e.to_string())?;
+    #[cfg(target_os = "macos")]
+    {
+        let _ = &app;
+        std::process::Command::new("open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+
     Ok(())
 }
 
