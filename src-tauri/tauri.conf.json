@@ -42,6 +42,7 @@
         "ext": ["md", "markdown", "mdown", "mkd"],
         "name": "Markdown Document",
         "description": "Markdown Document",
+        "mimeType": "text/markdown",
         "role": "Viewer"
       }
     ]
