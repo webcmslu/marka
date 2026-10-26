@@ -37,11 +37,20 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "linux": {
+      "deb": {
+        "desktopTemplate": "linux/marka.desktop"
+      },
+      "rpm": {
+        "desktopTemplate": "linux/marka.desktop"
+      }
+    },
     "fileAssociations": [
       {
         "ext": ["md", "markdown", "mdown", "mkd"],
         "name": "Markdown Document",
         "description": "Markdown Document",
+        "mimeType": "text/markdown",
         "role": "Viewer"
       }
     ]

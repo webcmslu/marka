@@ -1,6 +1,11 @@
+use std::path::Path;
+use std::sync::Mutex;
 use serde::Serialize;
 use tauri::{Emitter, Manager};
-use std::sync::Mutex;
+
+mod open_file;
+
+use open_file::open_file_from_args;
 
 struct PendingFile(Mutex<Option<String>>);
 
@@ -59,6 +64,18 @@ fn set_window_title(window: tauri::WebviewWindow, title: String) -> Result<(), S
 #[tauri::command]
 fn get_open_file(state: tauri::State<PendingFile>) -> Option<String> {
     state.0.lock().unwrap().take()
+}
+
+fn send_open_file(app: &tauri::AppHandle, path: String) {
+    let state = app.state::<PendingFile>();
+    *state.0.lock().unwrap() = Some(path.clone());
+    app.emit("open-file", path).ok();
+
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
 }
 
 #[tauri::command]
@@ -171,8 +188,28 @@ fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .manage(PendingFile(Mutex::new(None)))
+    let args: Vec<String> = std::env::args().collect();
+    let cwd = std::env::current_dir().unwrap_or_default();
+    let initial_file =
+        open_file_from_args(&args, &cwd).map(|path| path.to_string_lossy().into_owned());
+
+    let mut builder = tauri::Builder::default();
+
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+            if let Some(path) = open_file_from_args(&args, Path::new(&cwd)) {
+                send_open_file(app, path.to_string_lossy().into_owned());
+            } else if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }));
+    }
+
+    builder
+        .manage(PendingFile(Mutex::new(initial_file)))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -185,11 +222,7 @@ pub fn run() {
                 for url in urls {
                     let path: String = url.path().to_string();
                     if !path.is_empty() {
-                        // Store for startup fetch (fresh launch)
-                        let state = app_handle.state::<PendingFile>();
-                        *state.0.lock().unwrap() = Some(path.clone());
-                        // Also emit for already-running case
-                        app_handle.emit("open-file", path).ok();
+                        send_open_file(app_handle, path);
                     }
                 }
             }
