@@ -188,6 +188,16 @@ async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), Strin
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // WebKitGTK's DMA-BUF renderer leaves the window blank on NVIDIA's proprietary
+    // driver (GBM buffer creation fails). Fall back to the older renderer there,
+    // unless the user has set the variable themselves.
+    #[cfg(target_os = "linux")]
+    if std::path::Path::new("/proc/driver/nvidia/version").exists()
+        && std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none()
+    {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
     let args: Vec<String> = std::env::args().collect();
     let cwd = std::env::current_dir().unwrap_or_default();
     let initial_file =

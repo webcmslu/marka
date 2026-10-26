@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.11] — 2026-10-27
+
+### Fixed
+- Blank window (Linux, NVIDIA): on machines using NVIDIA's proprietary driver, the window stayed empty grey, so opened files looked like they hadn't opened. WebKitGTK's DMA-BUF renderer fails to create its buffers there; Marka now disables it (`WEBKIT_DISABLE_DMABUF_RENDERER=1`) when an NVIDIA driver is loaded, unless the variable is already set.
+
+---
+
 ## [1.1.10] — 2026-10-26
 
 ### Fixed
