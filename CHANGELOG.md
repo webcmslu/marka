@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [1.1.10] — 2026-10-26
 
 ### Fixed
 - Print (Windows): since 1.1.8 the Print button opened a blank "Print" window that never showed the print dialog and then stopped responding, so the process had to be killed ([#1](https://github.com/webcmslu/marka/issues/1)). The print window was created from a synchronous Tauri command, which deadlocks with WebView2 on Windows; the command is now `async`.
