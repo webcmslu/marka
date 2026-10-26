@@ -79,7 +79,7 @@ fn send_open_file(app: &tauri::AppHandle, path: String) {
 }
 
 #[tauri::command]
-fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
+async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
     let document = format!(r#"<!DOCTYPE html>
 <html>
 <head>

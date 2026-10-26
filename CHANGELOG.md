@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- Print (Windows): since 1.1.8 the Print button opened a blank "Print" window that never showed the print dialog and then stopped responding, so the process had to be killed ([#1](https://github.com/webcmslu/marka/issues/1)). The print window was created from a synchronous Tauri command, which deadlocks with WebView2 on Windows; the command is now `async`.
+- Opening files (Linux): Markdown files opened from the file manager were ignored, and Marka restored the last document instead. Launch arguments are now read on startup, the `.desktop` entry passes the file (`%F`) and declares `text/markdown`, and opening a file while Marka is already running sends it to the existing window and brings it to the front ([#2](https://github.com/webcmslu/marka/pull/2), thanks @fkdarven).
+
+---
+
 ## [1.1.9] — 2026-07-02
 
 ### Fixed
