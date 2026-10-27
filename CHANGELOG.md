@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.12] — 2026-10-27
+
+### Fixed
+- Print (Windows, Linux): after the print dialog was closed (printed or cancelled), an empty "Print" window stayed open ([#1](https://github.com/webcmslu/marka/issues/1)). The print page closed itself with JavaScript's `window.close()`, which does not close a Tauri window; it now signals the app, which closes the window.
+
+---
+
 ## [1.1.11] — 2026-10-27
 
 ### Fixed

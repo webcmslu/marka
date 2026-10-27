@@ -78,6 +78,10 @@ fn send_open_file(app: &tauri::AppHandle, path: String) {
     }
 }
 
+/// Sentinel URL the print page navigates to once the print dialog closes (`.invalid` is a
+/// reserved TLD, and the navigation is always blocked).
+const PRINT_DONE_URL: &str = "https://marka.invalid/print-done";
+
 #[tauri::command]
 async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
     let document = format!(r#"<!DOCTYPE html>
@@ -137,7 +141,9 @@ async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), Strin
   </style>
   <script>
     window.onload = function() {{ window.print(); }};
-    window.onafterprint = function() {{ window.close(); }};
+    // `window.close()` does not close a Tauri window; navigate to a sentinel URL instead,
+    // which the window's navigation handler intercepts to destroy the window.
+    window.onafterprint = function() {{ window.location.href = '{PRINT_DONE_URL}'; }};
   </script>
 </head>
 <body>
@@ -167,9 +173,25 @@ async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), Strin
             let _ = existing.destroy();
         }
 
+        // Closing is driven from here: when the print dialog is dismissed (printed or
+        // cancelled), the page navigates to PRINT_DONE_URL. Block that navigation and destroy
+        // the window from the async runtime rather than inside the WebView's own callback.
+        let handle = app.clone();
         tauri::WebviewWindowBuilder::new(&app, "print", tauri::WebviewUrl::External(url))
             .title("Print")
             .inner_size(820.0, 640.0)
+            .on_navigation(move |url| {
+                if url.as_str() != PRINT_DONE_URL {
+                    return true;
+                }
+                let handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Some(window) = handle.get_webview_window("print") {
+                        let _ = window.destroy();
+                    }
+                });
+                false
+            })
             .build()
             .map_err(|e| e.to_string())?;
     }
