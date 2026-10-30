@@ -221,6 +221,19 @@ export default function App() {
     restoringRef.current = false;
   }, [html, editMode]);
 
+  // Printed page header shows the file name (the rest of the margin boxes are in App.css)
+  useEffect(() => {
+    let el = document.getElementById('print-page-title') as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'print-page-title';
+      document.head.appendChild(el);
+    }
+    const name = filePath.split(/[\\/]/).pop() ?? '';
+    const css = name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    el.textContent = `@media print { @page { @top-left { content: "${css}"; } } }`;
+  }, [filePath]);
+
   // Window title reflects dirty state
   useEffect(() => {
     const name = filePath.split('/').pop() ?? '';

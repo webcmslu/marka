@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.14] — 2026-10-30
+
+### Changed
+- Print: printed pages carry Marka's own header and footer (file name and "Marka" at the top, marka.webcms.lu and page numbers at the bottom) instead of the browser's default "Tauri + React + Typescript" title and `tauri.localhost` address. The page title is now "Marka".
+- Release workflow: GitHub Actions updated to `actions/checkout@v7`, `actions/setup-node@v7` and `actions/github-script@v9` (Node.js 20 is deprecated on GitHub runners), and the app is built with Node.js 24.
+
+---
+
 ## [1.1.13] — 2026-10-30
 
 ### Changed

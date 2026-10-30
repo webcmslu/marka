@@ -828,7 +828,14 @@ mark[data-markjs] {
     background: transparent !important;
   }
 
-  @page { margin: 1.5cm 2cm; }
+  /* Defining margin boxes replaces the browser's own header/footer (page title, URL) */
+  @page {
+    margin: 1.5cm 2cm;
+    @top-left     { font: 9pt sans-serif; color: #59636e; }
+    @top-right    { content: "Marka"; font: 9pt sans-serif; color: #59636e; }
+    @bottom-left  { content: "marka.webcms.lu"; font: 9pt sans-serif; color: #59636e; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 9pt sans-serif; color: #59636e; }
+  }
 }
 
 /* ─── Update badge on About button ──────────────────────────────────────── */
