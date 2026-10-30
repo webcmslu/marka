@@ -310,16 +310,23 @@ export default function App() {
 
   useEffect(() => {
     if (!appVersion) return;
-    fetch('https://api.github.com/repos/webcmslu/marka/releases/latest')
-      .then(r => r.json())
-      .then(data => {
+    Promise.all([
+      fetch('https://api.github.com/repos/webcmslu/marka/releases/latest').then(r => r.json()),
+      invoke<string | null>('release_asset_suffix'),
+    ])
+      .then(([data, suffix]) => {
         const latest = String(data.tag_name ?? '').replace(/^v/, '');
         if (!latest) return;
         const parse = (v: string) => v.split('.').map(Number);
         const [la, lb, lc] = parse(latest);
         const [ca, cb, cc] = parse(appVersion);
         const newer = la > ca || (la === ca && lb > cb) || (la === ca && lb === cb && lc > cc);
-        if (newer) setUpdateInfo({ version: latest, url: data.html_url });
+        if (!newer) return;
+        // Direct link to the installer for this OS/arch; otherwise the website's download section
+        const asset = suffix
+          ? (data.assets ?? []).find((a: { name: string }) => a.name.endsWith(suffix))
+          : undefined;
+        setUpdateInfo({ version: latest, url: asset?.browser_download_url ?? 'https://marka.webcms.lu/#download' });
       })
       .catch(() => {}); // silent fail — no network, no noise
   }, [appVersion]);
@@ -445,6 +452,7 @@ export default function App() {
   );
 
   return (
+    <>
     <div
       className={`app${isDragging ? ' dragging' : ''}`}
       onDragOver={onDragOver}
@@ -618,5 +626,13 @@ export default function App() {
         </div>
       )}
     </div>
+
+    {/* Print-only copy of the document, always light (see `@media print` in App.css) */}
+    <article
+      className="markdown-body print-root"
+      data-dark={theme.dark || undefined}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+    </>
   );
 }

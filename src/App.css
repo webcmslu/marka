@@ -782,11 +782,53 @@ mark[data-markjs] {
   word-wrap: break-word;
 }
 
+/* Windows/Linux print the main window: only `.print-root` (a copy of the document
+   outside the scrolling app shell) is printed, in GitHub Light whatever the app theme. */
+.print-root { display: none; }
+
 @media print {
-  .toolbar, .search-bar, .sidebar, .editor-pane, .editor-divider { display: none !important; }
-  .layout, .editor-split { display: block; }
-  .content-wrapper, .editor-preview { overflow: visible; padding: 0; }
-  .markdown-body { max-width: 100%; }
+  .app { display: none !important; }
+  html, body, #root { height: auto; }
+
+  html[data-theme] .markdown-body.print-root {
+    display: block;
+    max-width: none;
+    margin: 0;
+    color-scheme: light;
+    --bgColor-attention-muted:   #fff8c5;
+    --bgColor-default:           #ffffff;
+    --bgColor-muted:             #f6f8fa;
+    --bgColor-neutral-muted:     #818b981f;
+    --borderColor-accent-emphasis: #0969da;
+    --borderColor-attention-emphasis: #9a6700;
+    --borderColor-danger-emphasis: #cf222e;
+    --borderColor-default:       #d1d9e0;
+    --borderColor-done-emphasis: #8250df;
+    --borderColor-muted:         #d1d9e0b3;
+    --borderColor-neutral-muted: #d1d9e0b3;
+    --borderColor-success-emphasis: #1a7f37;
+    --fgColor-accent:            #0969da;
+    --fgColor-attention:         #9a6700;
+    --fgColor-danger:            #d1242f;
+    --fgColor-default:           #1f2328;
+    --fgColor-done:              #8250df;
+    --fgColor-muted:             #59636e;
+    --fgColor-success:           #1a7f37;
+  }
+
+  .print-root pre {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Dark highlight themes are unreadable on paper: print code uncoloured */
+  .print-root[data-dark] .hljs,
+  .print-root[data-dark] .hljs * {
+    color: inherit !important;
+    background: transparent !important;
+  }
+
+  @page { margin: 1.5cm 2cm; }
 }
 
 /* ─── Update badge on About button ──────────────────────────────────────── */

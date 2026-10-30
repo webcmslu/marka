@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.13] — 2026-10-30
+
+### Changed
+- Update link: when a newer version is available, "Download ↗" in the About box now downloads the installer for this build directly (Apple Silicon or Intel `.dmg`, Windows setup `.exe`, and on Linux the AppImage, `.deb` or `.rpm` depending on how Marka is installed) instead of opening the GitHub release page. If no installer matches, it opens the download section of [marka.webcms.lu](https://marka.webcms.lu/#download).
+
+### Fixed
+- Print (Windows, Linux): in 1.1.12 the print preview showed inside a separate "Print" window, and clicking Print sent nothing to the printer, likely because that window was closed before the job had gone out ([#1](https://github.com/webcmslu/marka/issues/1)). The separate Print window is gone: Marka now prints its own window, using print-only styles that show just the document, always in light colours whatever the app theme.
+
+---
+
 ## [1.1.12] — 2026-10-27
 
 ### Fixed

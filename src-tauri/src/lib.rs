@@ -66,6 +66,29 @@ fn get_open_file(state: tauri::State<PendingFile>) -> Option<String> {
     state.0.lock().unwrap().take()
 }
 
+/// Release asset suffix matching this build (e.g. "aarch64.dmg"), so the update link can
+/// point straight at the right installer. `None` when no published asset fits.
+#[tauri::command]
+fn release_asset_suffix() -> Option<&'static str> {
+    match (std::env::consts::OS, std::env::consts::ARCH) {
+        ("macos", "aarch64") => Some("aarch64.dmg"),
+        ("macos", "x86_64") => Some("x64.dmg"),
+        ("windows", "x86_64") => Some("x64-setup.exe"),
+        ("linux", "x86_64") => {
+            if std::env::var_os("APPIMAGE").is_some() {
+                Some("amd64.AppImage")
+            } else if Path::new("/etc/debian_version").exists() {
+                Some("amd64.deb")
+            } else if Path::new("/etc/redhat-release").exists() {
+                Some("x86_64.rpm")
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
 fn send_open_file(app: &tauri::AppHandle, path: String) {
     let state = app.state::<PendingFile>();
     *state.0.lock().unwrap() = Some(path.clone());
@@ -78,13 +101,24 @@ fn send_open_file(app: &tauri::AppHandle, path: String) {
     }
 }
 
-/// Sentinel URL the print page navigates to once the print dialog closes (`.invalid` is a
-/// reserved TLD, and the navigation is always blocked).
-const PRINT_DONE_URL: &str = "https://marka.invalid/print-done";
-
 #[tauri::command]
-async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), String> {
-    let document = format!(r#"<!DOCTYPE html>
+async fn print_document(window: tauri::WebviewWindow, html: String) -> Result<(), String> {
+    // On Windows and Linux, print the main window itself: its `@media print` styles show only
+    // a light copy of the document (`.print-root`). Earlier versions rendered the document in a
+    // separate "Print" window, which kept failing on Windows (frozen or blank window, window
+    // closed before the job was sent; see #1).
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = html;
+        window.eval("window.print()").map_err(|e| e.to_string())
+    }
+
+    // macOS's WebView (WKWebView) does NOT implement JavaScript `window.print()`, so open the
+    // document in the default `.html` handler instead, which on macOS is reliably a browser.
+    #[cfg(target_os = "macos")]
+    {
+        let _ = window;
+        let document = format!(r#"<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -141,9 +175,6 @@ async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), Strin
   </style>
   <script>
     window.onload = function() {{ window.print(); }};
-    // `window.close()` does not close a Tauri window; navigate to a sentinel URL instead,
-    // which the window's navigation handler intercepts to destroy the window.
-    window.onafterprint = function() {{ window.location.href = '{PRINT_DONE_URL}'; }};
   </script>
 </head>
 <body>
@@ -151,61 +182,14 @@ async fn print_document(app: tauri::AppHandle, html: String) -> Result<(), Strin
 </body>
 </html>"#);
 
-    let path = std::env::temp_dir().join("marka_print.html");
-    std::fs::write(&path, &document).map_err(|e| e.to_string())?;
-
-    // On Windows and Linux, render the print document in an app-owned WebView window
-    // (WebView2 / WebKitGTK). This runs the inline `window.print()` reliably and removes
-    // the dependency on the user's `.html` file association — the association gap was the
-    // original Windows "can't print" bug.
-    //
-    // macOS is handled separately below: its WebView (WKWebView) does NOT implement
-    // JavaScript `window.print()`, so a WebView window would just show the content with no
-    // print dialog. Instead we open the temp file in the default handler, which on macOS is
-    // reliably a browser that does support `window.print()`.
-    #[cfg(not(target_os = "macos"))]
-    {
-        let url = tauri::Url::from_file_path(&path).map_err(|_| "invalid print file path".to_string())?;
-
-        // A window with the "print" label may still exist if a previous print run was
-        // cancelled before `onafterprint` closed it; force-destroy it so we can reuse the label.
-        if let Some(existing) = app.get_webview_window("print") {
-            let _ = existing.destroy();
-        }
-
-        // Closing is driven from here: when the print dialog is dismissed (printed or
-        // cancelled), the page navigates to PRINT_DONE_URL. Block that navigation and destroy
-        // the window from the async runtime rather than inside the WebView's own callback.
-        let handle = app.clone();
-        tauri::WebviewWindowBuilder::new(&app, "print", tauri::WebviewUrl::External(url))
-            .title("Print")
-            .inner_size(820.0, 640.0)
-            .on_navigation(move |url| {
-                if url.as_str() != PRINT_DONE_URL {
-                    return true;
-                }
-                let handle = handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Some(window) = handle.get_webview_window("print") {
-                        let _ = window.destroy();
-                    }
-                });
-                false
-            })
-            .build()
-            .map_err(|e| e.to_string())?;
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        let _ = &app;
+        let path = std::env::temp_dir().join("marka_print.html");
+        std::fs::write(&path, &document).map_err(|e| e.to_string())?;
         std::process::Command::new("open")
             .arg(&path)
             .spawn()
             .map_err(|e| e.to_string())?;
+        Ok(())
     }
-
-    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -245,7 +229,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![read_file, write_file, list_dir, set_window_title, print_document, get_open_file])
+        .invoke_handler(tauri::generate_handler![read_file, write_file, list_dir, set_window_title, print_document, get_open_file, release_asset_suffix])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|app_handle, event| {
