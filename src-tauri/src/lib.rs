@@ -102,14 +102,15 @@ fn send_open_file(app: &tauri::AppHandle, path: String) {
 }
 
 #[tauri::command]
-async fn print_document(window: tauri::WebviewWindow, html: String) -> Result<(), String> {
+async fn print_document(window: tauri::WebviewWindow, html: String, title: String) -> Result<(), String> {
     // On Windows and Linux, print the main window itself: its `@media print` styles show only
     // a light copy of the document (`.print-root`). Earlier versions rendered the document in a
     // separate "Print" window, which kept failing on Windows (frozen or blank window, window
     // closed before the job was sent; see #1).
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = html;
+        // The page title (set by the frontend) names the PDF in "Save as PDF".
+        let _ = (html, title);
         window.eval("window.print()").map_err(|e| e.to_string())
     }
 
@@ -118,11 +119,12 @@ async fn print_document(window: tauri::WebviewWindow, html: String) -> Result<()
     #[cfg(target_os = "macos")]
     {
         let _ = window;
+        let title = title.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
         let document = format!(r#"<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Print</title>
+  <title>{title}</title>
   <style>
     body {{
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;

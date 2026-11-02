@@ -65,6 +65,12 @@ function parentDir(path: string) {
   return parts.join('/') || '/';
 }
 
+/** Title used when printing, which "Save as PDF" turns into the file name: "notes.md" -> "notes". */
+function printTitle(filePath: string) {
+  const name = filePath.split(/[\\/]/).pop() ?? '';
+  return name.replace(/\.(md|markdown|mdown|mkd|txt)$/i, '') || 'Marka';
+}
+
 export default function App() {
   const [html, setHtml]               = useState('');
   const [rawContent, setRawContent]   = useState('');
@@ -232,11 +238,13 @@ export default function App() {
     const name = filePath.split(/[\\/]/).pop() ?? '';
     const css = name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     el.textContent = `@media print { @page { @top-left { content: "${css}"; } } }`;
+    // "Save as PDF" names the file after the page title (#1)
+    document.title = printTitle(filePath);
   }, [filePath]);
 
   // Window title reflects dirty state
   useEffect(() => {
-    const name = filePath.split('/').pop() ?? '';
+    const name = filePath.split(/[\\/]/).pop() ?? '';
     if (!name) return;
     const title = `${isDirty ? '• ' : ''}${name} — Marka`;
     invoke('set_window_title', { title }).catch(() => {});
@@ -279,11 +287,11 @@ export default function App() {
   const printDocument = useCallback(async () => {
     if (!html) return;
     try {
-      await invoke('print_document', { html });
+      await invoke('print_document', { html, title: printTitle(filePath) });
     } catch (err) {
       console.error('[print] failed:', err);
     }
-  }, [html]);
+  }, [html, filePath]);
 
   // Keyboard shortcuts
   useEffect(() => {

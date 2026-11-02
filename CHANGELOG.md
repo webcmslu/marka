@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.15] — 2026-11-02
+
+### Fixed
+- Print: "Save as PDF" now suggests the Markdown file's name (`notes.md` → `notes.pdf`) instead of `Marka.pdf` (#1).
+- Windows: the window title shows only the file name instead of the full path.
+
+---
+
 ## [1.1.14] — 2026-10-30
 
 ### Changed
