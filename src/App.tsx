@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import { getVersion } from '@tauri-apps/api/app';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { getMatches } from '@tauri-apps/plugin-cli';
 import { invoke } from '@tauri-apps/api/core';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
@@ -351,6 +352,22 @@ export default function App() {
       })
       .catch(() => {}); // silent fail — no network, no noise
   }, [appVersion]);
+
+  // Handle opening a file from command line argument
+  useEffect(() => {
+    async function openCliFile() {
+      try {
+        const matches = await getMatches();
+        const path = matches.args.source?.value;
+        if (typeof path === 'string' && path.length > 0) {
+          await loadFile(path);
+        }
+      } catch (err) {
+        console.error('Failed to get command-line arguments:', err);
+      }
+    }
+    void openCliFile();
+  }, [loadFile]);
 
   // On startup: open file from Finder if any, otherwise restore last recent file
   useEffect(() => {
