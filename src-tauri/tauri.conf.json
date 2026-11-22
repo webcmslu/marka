@@ -54,5 +54,18 @@
         "role": "Viewer"
       }
     ]
-  }
+  },
+  "plugins": {
+    "cli": {
+      "args": [
+        {
+          "name": "source",
+          "index": 1,
+          "takesValue": true,
+          "required": false,
+          "description": "File to open"
+        }
+      ]
+    }
+  } 
 }
